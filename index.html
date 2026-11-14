@@ -166,14 +166,21 @@
                 <div class="field"><label for="replicates">Replicates <small>per sample</small></label><input id="replicates" type="number" min="1" step="1" value="1"></div>
                 <div class="field"><label for="positiveControls">Positive controls</label><input id="positiveControls" type="number" min="0" step="1" value="1"></div>
                 <div class="field"><label for="ntcControls">No-template controls</label><input id="ntcControls" type="number" min="0" step="1" value="1"></div>
-                <div class="field"><label>Extra volume <small>fixed pipetting allowance</small></label><div class="fixed-value"><span>10%</span><small>FIXED</small></div></div>
+                <div class="field"><label>Extra volume <small>fixed pipetting allowance</small></label><div class="fixed-value"><span>5%</span><small>FIXED</small></div></div>
               </div>
-              <p class="hint">Total tubes = (samples × replicates) + positive controls + NTCs. PCR Bench always applies a fixed 10% extra to the shared mixture; it does not add extra template DNA or create another PCR tube.</p>
-              <div class="overage-explain"><strong>Why is 10% extra added?</strong> A little mixture can be lost during pipetting and transfer, for example by remaining in pipette tips or on tube walls. Preparing 10% more common mix provides a small allowance so there is enough mixture to dispense into every planned tube. This is a practical allowance, not an additional reaction.
-                <br><strong>Calculation logic:</strong> the calculator first counts the sample and control tubes, then multiplies the common-mix requirement by 1.10.
-                <br><span class="formula">Common-mix equivalents = total tubes × 1.10</span>
-                <br>Example: 10 planned tubes × 1.10 = 11 reaction-equivalents of common mix. The 10% is applied to the shared reagents (including water); template DNA is kept separate and added to each tube individually.
-              </div>
+             <p class="hint">Total tubes = (samples × replicates) + positive controls + NTCs. PCR Bench always applies a fixed 5% extra to the shared mixture; it does not add extra template DNA or create another PCR tube.</p>
+
+<div class="overage-explain">
+  <strong>Why is 5% extra added?</strong>
+  A small amount of mixture may be lost during pipetting and transfer, such as liquid remaining inside pipette tips or on tube walls. Preparing 5% extra common mix provides an additional allowance to help ensure there is enough mixture for all planned tubes. This is a practical allowance, not an additional reaction.
+
+  <br><strong>Calculation logic:</strong>
+  The calculator first counts all sample and control tubes, then multiplies the common-mix requirement by 1.05.
+
+  <br><span class="formula">Common-mix equivalents = total tubes × 1.05</span>
+
+  <br>Example: 10 planned tubes × 1.05 = 10.5 reaction-equivalents of common mix. The 5% is applied to the shared reagents, including water; template DNA is kept separate and added individually to each tube.
+</div>
             </div>
 
             <div class="divider"></div>
@@ -382,7 +389,7 @@
     const reps = num('replicates');
     const positives = num('positiveControls');
     const ntcs = num('ntcControls');
-    const overage = 10; // Fixed 10% pipetting allowance for the shared mix.
+    const overage = 5; // Fixed 10% pipetting allowance for the shared mix.
     if (!isPositive(rxn)) errors.push('Enter a positive final reaction volume in µL.');
     if (!Number.isInteger(samples) || samples < 0) errors.push('Number of samples must be a whole number (zero or greater).');
     if (!Number.isInteger(reps) || reps < 1) errors.push('Replicates per sample must be a whole number of at least 1.');
