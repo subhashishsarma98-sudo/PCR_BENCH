@@ -11,7 +11,7 @@
       --ink:#172033;--muted:#657187;--line:#e4e9f0;--paper:#f4f6f8;--card:#ffffff;
       --water:#149bd7;--water-bg:#eaf7fd;--buffer:#5965d8;--buffer-bg:#f0f1ff;
       --primer:#15976b;--primer-bg:#eaf8f1;--enzyme:#c27b13;--enzyme-bg:#fff5df;
-      --dna:#8056c7;--dna-bg:#f4efff;--other:#c35a68;--other-bg:#fff0f1;
+      --dna:#8056c7;--dna-bg:#f4efff;--dntp:#2b9aa5;--mix:#6477b9;--other:#c35a68;--other-bg:#fff0f1;
       --success:#16845d;--danger:#bd4242;--shadow:0 12px 32px rgba(29,45,71,.07);
       --radius:18px;
     }
@@ -105,6 +105,49 @@
     .footer{margin-top:22px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;color:#8994a3;font-size:11px}.footer p{margin:0;max-width:740px}.footer a{color:#61738d;text-decoration:none}
     .modal-backdrop{position:fixed;inset:0;background:rgba(19,30,48,.32);backdrop-filter:blur(5px);z-index:30;display:none;align-items:center;justify-content:center;padding:20px}.modal-backdrop.show{display:flex;animation:fade .2s ease}.modal{background:white;width:min(460px,100%);border-radius:18px;padding:22px;box-shadow:0 24px 70px rgba(10,20,40,.22);animation:pop .25s ease}.modal h3{margin:0 0 6px;font-size:17px}.modal p{color:var(--muted);font-size:12px;margin:0 0 15px}.modal-actions{display:flex;justify-content:flex-end;gap:8px}
     .toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:50;background:#20314a;color:white;padding:10px 15px;border-radius:12px;font-size:12px;box-shadow:0 8px 26px rgba(20,35,56,.2);transition:all .25s}.toast.show{opacity:1;transform:translate(-50%,0)}
+
+    /* 650 ms PCR primer-annealing / extension logo animation. */
+    .replication-mark{overflow:visible}
+    .dna-strand{stroke-dasharray:28;stroke-dashoffset:0}
+    .dna-strand-top{transform:translateY(4px);animation:dnaTopSeparate 650ms cubic-bezier(.22,1,.36,1) forwards}
+    .dna-strand-bottom{transform:translateY(-4px);animation:dnaBottomSeparate 650ms cubic-bezier(.22,1,.36,1) forwards}
+    .dna-primer{transform-box:fill-box;transform-origin:center;transform:scaleX(0);animation:primerSnap 170ms cubic-bezier(.22,1,.36,1) 170ms forwards}
+    .polymerase-dot{opacity:0}
+    .polymerase-dot-top{animation:polymeraseTop 300ms cubic-bezier(.22,1,.36,1) 330ms forwards}
+    .polymerase-dot-bottom{animation:polymeraseBottom 300ms cubic-bezier(.22,1,.36,1) 330ms forwards}
+    @keyframes dnaTopSeparate{to{transform:translateY(-4px)}}
+    @keyframes dnaBottomSeparate{to{transform:translateY(4px)}}
+    @keyframes primerSnap{0%{transform:scaleX(0)}72%{transform:scaleX(1.12)}100%{transform:scaleX(1)}}
+    @keyframes polymeraseTop{0%{opacity:0;transform:translateX(0)}15%{opacity:1}100%{opacity:1;transform:translateX(18px)}}
+    @keyframes polymeraseBottom{0%{opacity:0;transform:translateX(0)}15%{opacity:1}100%{opacity:1;transform:translateX(-18px)}}
+
+    /* 600 ms thermal-cycler trace drawn along the main card's upper edge. */
+    #inputPanel{position:relative}
+    .thermal-trace{position:absolute;top:0;left:0;width:100%;height:30px;pointer-events:none;z-index:2;overflow:visible;opacity:.15;animation:thermalFade 650ms cubic-bezier(.22,1,.36,1) both}
+    .thermal-trace-path{fill:none;stroke:#6f92ad;stroke-width:1.5;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1000;stroke-dashoffset:1000;animation:thermalDraw 600ms cubic-bezier(.22,1,.36,1) forwards}
+    @keyframes thermalDraw{to{stroke-dashoffset:0}}
+    @keyframes thermalFade{0%{opacity:.9}100%{opacity:.15}}
+    #inputPanel>.panel-head{position:relative;z-index:3;background:rgba(255,255,255,.96)}
+
+    /* Live master-mix summary and proportional microtube. */
+    .mix-summary-card{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:16px 18px 2px;padding:14px 15px;border:1px solid #e4eaf2;border-radius:14px;background:linear-gradient(120deg,#f7fbff,#fbfaff);min-height:112px}
+    .mix-summary-copy{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+    .summary-kicker{font-size:9px;letter-spacing:.12em;font-weight:850;color:#6e829b}
+    .summary-title{font-size:12px;color:#35465f}
+    .summary-volume{font-size:25px;line-height:1.12;font-weight:850;letter-spacing:-.045em;color:#1f3450;font-variant-numeric:tabular-nums}
+    .summary-volume span{font-size:12px;font-weight:700;letter-spacing:0;color:#7a8ba0}
+    .mix-summary-copy small{font-size:10px;color:#8190a2;line-height:1.4;max-width:255px}
+    .microtube-wrap{width:68px;flex:none;display:flex;flex-direction:column;align-items:center;gap:0}
+    .microtube{width:48px;height:64px;overflow:visible}
+    #tubeLiquidBands rect{shape-rendering:crispEdges;stroke:rgba(255,255,255,.45);stroke-width:.35}
+    #tubeMeniscus{transition:opacity .2s}
+    .microtube-wrap small{font-size:8px;color:#8794a5;white-space:nowrap;margin-top:-1px}
+    .dot.dntp{background:var(--dntp)}.dot.mix{background:var(--mix)}
+
+    /* 300 ms row entrance, staggered 40 ms at a time. */
+    .row-cascade{animation:rowCascade 300ms cubic-bezier(.22,1,.36,1) both}
+    @keyframes rowCascade{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    .volume-number{font-variant-numeric:tabular-nums;display:inline-block;min-width:3ch;text-align:right}
     .loading-overlay{position:fixed;inset:0;background:rgba(246,249,252,.82);backdrop-filter:blur(5px);z-index:40;display:none;align-items:center;justify-content:center}.loading-overlay.show{display:flex}.loading-card{background:white;border:1px solid var(--line);border-radius:18px;padding:23px 30px;text-align:center;box-shadow:var(--shadow);min-width:230px}.spinner{width:36px;height:36px;border:3px solid #e5edf5;border-top-color:#1997c9;border-radius:50%;margin:0 auto 12px;animation:spin .8s linear infinite}.loading-card strong{display:block;font-size:13px}.loading-card span{display:block;color:#8290a2;font-size:11px;margin-top:4px}
     .refresh-sweep{position:fixed;inset:0;z-index:60;pointer-events:none;transform:translateY(-105%);background:linear-gradient(180deg,rgba(207,239,252,.96),rgba(238,239,255,.96));display:grid;place-items:center}.refresh-sweep.go{animation:sweep .8s ease-in-out forwards}.refresh-sweep .sweep-inner{font-weight:850;letter-spacing:-.03em;font-size:19px;color:#30435e;opacity:0;animation:fadeUp .6s .13s forwards}
     .wipe{animation:wipe .42s ease both}
@@ -118,8 +161,8 @@
     @keyframes fadeUp{to{opacity:1}}
     @keyframes wipe{0%{opacity:1;transform:scale(1)}45%{opacity:.35;transform:scale(.985)}100%{opacity:1;transform:scale(1)}}
     @media(max-width:920px){.layout{grid-template-columns:1fr}.result-panel{position:static}.hero{align-items:flex-start}.hero-chip{display:none}}
-    @media(max-width:560px){.topbar-inner{padding:10px 14px}.privacy{display:none}main{padding:25px 14px 48px}.hero{margin-bottom:19px}.hero p{font-size:13px}.panel-head{padding:16px}.panel-body{padding:16px}.grid-2,.grid-3{grid-template-columns:1fr 1fr}.top-actions .btn span{display:none}.top-actions .btn{padding:9px}.footer{display:block}.footer p+ p{margin-top:9px}.result-content{padding:15px}.panel-head h2{font-size:15px}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    @media(max-width:560px){.topbar-inner{padding:10px 14px}.privacy{display:none}main{padding:25px 14px 48px}.hero{margin-bottom:19px}.hero p{font-size:13px}.panel-head{padding:16px}.panel-body{padding:16px}.grid-2,.grid-3{grid-template-columns:1fr 1fr}.top-actions .btn span{display:none}.top-actions .btn{padding:9px}.footer{display:block}.footer p+ p{margin-top:9px}.result-content{padding:15px}.panel-head h2{font-size:15px}.mix-summary-card{margin:13px 13px 2px;padding:12px}.summary-volume{font-size:22px}.microtube-wrap{width:58px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.dna-strand-top,.dna-strand-bottom{transform:none}.dna-primer{transform:scaleX(1)}.polymerase-dot{opacity:1}.thermal-trace{opacity:.15;animation:none}.thermal-trace-path{stroke-dashoffset:0;animation:none}}
   </style>
 </head>
 <body>
@@ -127,7 +170,14 @@
     <div class="topbar-inner">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none"><path d="M10 4h12M12 4v8.2L6.9 23.5A3 3 0 0 0 9.6 28h12.8a3 3 0 0 0 2.7-4.5L20 12.2V4" stroke="#405879" stroke-width="1.8" stroke-linecap="round"/><path d="M9.2 20.2h13.6l2.3 4.2a2.2 2.2 0 0 1-2 3.2H8.9a2.2 2.2 0 0 1-2-3.2l2.3-4.2Z" fill="#7fd0ed" opacity=".85"/><circle cx="14" cy="23" r="1" fill="#fff"/><circle cx="19" cy="25" r="1.1" fill="#fff"/></svg>
+          <svg class="replication-mark" viewBox="0 0 36 30" fill="none">
+            <path class="dna-strand dna-strand-top" d="M4 14H32" stroke="#405879" stroke-width="1.7" stroke-linecap="round"/>
+            <path class="dna-strand dna-strand-bottom" d="M4 16H32" stroke="#405879" stroke-width="1.7" stroke-linecap="round"/>
+            <rect class="dna-primer dna-primer-top" x="4" y="7" width="7" height="5" rx="1.5" fill="#15976b"/>
+            <rect class="dna-primer dna-primer-bottom" x="25" y="18" width="7" height="5" rx="1.5" fill="#8056c7"/>
+            <circle class="polymerase-dot polymerase-dot-top" cx="11" cy="10" r="2.1" fill="#16b9e8"/>
+            <circle class="polymerase-dot polymerase-dot-bottom" cx="25" cy="21" r="2.1" fill="#16b9e8"/>
+          </svg>
         </div>
         <span>PCR <span style="color:#6c86a2">Bench</span></span>
       </div>
@@ -151,6 +201,9 @@
 
     <div class="layout">
       <section class="panel" id="inputPanel">
+        <svg class="thermal-trace" viewBox="0 0 1000 36" preserveAspectRatio="none" role="img" aria-label="Decorative PCR temperature profile: denaturation, annealing and extension">
+          <path class="thermal-trace-path" pathLength="1000" d="M0 19H70V5H340V30H640V15H920V19H1000"/>
+        </svg>
         <div class="panel-head">
           <div><h2>Reaction setup</h2><p>Enter values from your reagent labels and validated protocol.</p></div>
           <span class="pill" style="background:#edf3f8;color:#5d7088">SETUP</span>
@@ -166,21 +219,15 @@
                 <div class="field"><label for="replicates">Replicates <small>per sample</small></label><input id="replicates" type="number" min="1" step="1" value="1"></div>
                 <div class="field"><label for="positiveControls">Positive controls</label><input id="positiveControls" type="number" min="0" step="1" value="1"></div>
                 <div class="field"><label for="ntcControls">No-template controls</label><input id="ntcControls" type="number" min="0" step="1" value="1"></div>
-                <div class="field"><label>Extra volume <small>fixed pipetting allowance</small></label><div class="fixed-value"><span>5%</span><small>FIXED</small></div></div>
+                <div class="field"><label for="overage">Extra volume <small>optional pipetting allowance</small></label><div class="unit-wrap"><input id="overage" type="number" min="0" max="100" step="0.1" value="0"><span class="unit">%</span></div></div>
               </div>
-             <p class="hint">Total tubes = (samples × replicates) + positive controls + NTCs. PCR Bench always applies a fixed 5% extra to the shared mixture; it does not add extra template DNA or create another PCR tube.</p>
-
-<div class="overage-explain">
-  <strong>Why is 5% extra added?</strong>
-  A small amount of mixture may be lost during pipetting and transfer, such as liquid remaining inside pipette tips or on tube walls. Preparing 5% extra common mix provides an additional allowance to help ensure there is enough mixture for all planned tubes. This is a practical allowance, not an additional reaction.
-
-  <br><strong>Calculation logic:</strong>
-  The calculator first counts all sample and control tubes, then multiplies the common-mix requirement by 1.05.
-
-  <br><span class="formula">Common-mix equivalents = total tubes × 1.05</span>
-
-  <br>Example: 10 planned tubes × 1.05 = 10.5 reaction-equivalents of common mix. The 5% is applied to the shared reagents, including water; template DNA is kept separate and added individually to each tube.
-</div>
+              <p class="hint">Total tubes = (samples × replicates) + positive controls + NTCs. Extra volume is optional and defaults to 0%. Enter the percentage you want to add to the shared PCR mixture.</p>
+              <div class="overage-explain"><strong>Why use extra volume?</strong> A small amount of mixture can be lost during pipetting and transfer, for example by remaining inside pipette tips or on tube walls. Preparing extra common mixture can help ensure that there is enough to dispense into every planned tube. This is a practical allowance, not an additional PCR tube.
+                <br><strong>Calculation logic:</strong> the calculator first counts all sample and control tubes, then applies the selected extra percentage to the common mixture.
+                <br><span class="formula">Common-mix equivalents = total tubes × (1 + extra volume / 100)</span>
+                <br><strong>Example for 10 planned tubes:</strong> 0% extra = 10 reaction-equivalents; 5% extra = 10.5 reaction-equivalents; 10% extra = 11 reaction-equivalents.
+                <br>The extra percentage is applied to the shared reagents, including water. Template DNA is excluded from the common mix and added separately to each tube.
+              </div>
             </div>
 
             <div class="divider"></div>
@@ -289,7 +336,8 @@
                 <button class="btn btn-primary" type="submit" id="calculateBtn" style="flex:1;min-width:170px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h4l2-7 4 14 2-7h4"/></svg> Calculate mixture</button>
                 <button class="btn btn-soft" type="button" id="loadExampleBtn">Load example</button>
               </div>
-              <div class="order-note"><span class="order-step"><b>1</b> Water first</span><span class="order-step"><b>2</b> Buffer & primers</span><span class="order-step"><b>3</b> Template</span><span class="order-step"><b>4</b> Polymerase last</span></div>
+              <div class="order-note"><span class="order-step"><b>1</b> Water</span><span class="order-step"><b>2</b> Buffer</span><span class="order-step"><b>3</b> dNTPs</span><span class="order-step"><b>4</b> Primers</span><span class="order-step"><b>5</b> Template</span><span class="order-step"><b>6</b> Polymerase</span></div>
+              <p class="hint">This is the visual order for separately added reagents. Follow your enzyme manufacturer's instructions; components already present in a commercial master mix stay grouped in the master-mix row.</p>
             </div>
           </form>
         </div>
@@ -297,6 +345,27 @@
 
       <aside class="panel result-panel" id="resultPanel">
         <div class="panel-head"><div><h2>Calculated recipe</h2><p>Per reaction and bulk preparation</p></div><span class="pill" style="background:#eaf8f1;color:#16845d">OUTPUT</span></div>
+        <div class="mix-summary-card" id="mixSummaryCard" aria-live="polite">
+          <div class="mix-summary-copy">
+            <span class="summary-kicker">LIVE COMMON-MIX PREVIEW</span>
+            <strong class="summary-title">Total Master Mix Volume</strong>
+            <div class="summary-volume" id="outBulkVolume" data-value="0">— <span>µL</span></div>
+            <small id="outBulkContext">Enter valid reaction details to preview the shared mixture. Template DNA is excluded.</small>
+          </div>
+          <div class="microtube-wrap">
+            <svg class="microtube" viewBox="0 0 44 60" role="img" aria-label="Microtube showing the proportions and volume of the shared PCR mixture">
+              <defs>
+                <clipPath id="tubeClip"><path d="M14 7H30V36C30 45 26.5 51.5 22 54C17.5 51.5 14 45 14 36Z"/></clipPath>
+              </defs>
+              <g id="tubeLiquidBands" clip-path="url(#tubeClip)" aria-hidden="true"></g>
+              <path d="M11.5 5H32.5V36C32.5 48 26.5 56 22 57C17.5 56 11.5 48 11.5 36Z" fill="rgba(255,255,255,.28)" stroke="#71829a" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M10 5H34" stroke="#71829a" stroke-width="2.2" stroke-linecap="round"/>
+              <path id="tubeMeniscus" d="M14 52Q22 53 30 52" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round"/>
+              <path d="M15.5 10V34" stroke="rgba(255,255,255,.7)" stroke-width="1" stroke-linecap="round"/>
+            </svg>
+            <small>0.5 mL visual scale</small>
+          </div>
+        </div>
         <div class="result-empty" id="emptyState">
           <div class="empty-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 4h12M12 4v8l-5.5 11A3 3 0 0 0 9.2 27h13.6a3 3 0 0 0 2.7-4L20 12V4"/><path d="M9 20h14"/><circle cx="14" cy="23" r="1" fill="currentColor"/><circle cx="19" cy="24" r="1" fill="currentColor"/></svg></div>
           <h3>Your recipe will appear here</h3><p>Enter the reagent details and select “Calculate mixture” to see volumes, concentrations and bulk master mix quantities.</p>
@@ -308,7 +377,7 @@
           </div>
           <div class="result-caption"><span>Per-reaction recipe</span><small id="outReactionVolume">25 µL total</small></div>
           <div class="table-wrap"><table><thead><tr><th>Reagent</th><th>Volume / tube</th></tr></thead><tbody id="perTable"></tbody></table></div>
-          <div class="result-caption"><span>Bulk common mix</span><small id="outBulkVolume">—</small></div>
+          <div class="result-caption"><span>Bulk common mix recipe</span><small>Template excluded</small></div>
           <div class="table-wrap"><table><thead><tr><th>Reagent</th><th>Total volume</th></tr></thead><tbody id="bulkTable"></tbody></table></div>
           <div class="bulk-note" id="bulkNote"></div>
           <div class="result-caption"><span>Concentration check</span><small>Calculated final values</small></div>
@@ -381,7 +450,7 @@
     $('extraTaq').classList.toggle('hidden', $('incTaq').checked);
   };
 
-  function calculate() {
+  function calculate({quiet = false} = {}) {
     hideError();
     const errors = [];
     const rxn = num('reactionVolume');
@@ -389,12 +458,13 @@
     const reps = num('replicates');
     const positives = num('positiveControls');
     const ntcs = num('ntcControls');
-    const overage = 5; // Fixed 10% pipetting allowance for the shared mix.
+    const overage = num('overage');
     if (!isPositive(rxn)) errors.push('Enter a positive final reaction volume in µL.');
     if (!Number.isInteger(samples) || samples < 0) errors.push('Number of samples must be a whole number (zero or greater).');
     if (!Number.isInteger(reps) || reps < 1) errors.push('Replicates per sample must be a whole number of at least 1.');
     if (!Number.isInteger(positives) || positives < 0) errors.push('Positive controls must be a whole number (zero or greater).');
     if (!Number.isInteger(ntcs) || ntcs < 0) errors.push('NTC count must be a whole number (zero or greater).');
+    if (!isNonNegative(overage) || overage > 100) errors.push('Extra volume must be a number between 0 and 100%.');
     const totalReactions = samples * reps + positives + ntcs;
     if (totalReactions < 1) errors.push('Enter at least one sample or control reaction.');
     if (totalReactions > 10000) errors.push('The total reaction count is unusually high. Check your sample and replicate entries.');
@@ -422,16 +492,16 @@
       const stockX = num('mixStock'), finalX = num('mixFinal');
       if (!isPositive(stockX) || !isPositive(finalX)) errors.push('Master mix stock and final strengths must be greater than zero.');
       else if (finalX > stockX) errors.push('Desired final master mix strength cannot exceed its stock strength.');
-      else { mixVol = finalX * rxn / stockX; mixLabel = `PCR master mix (${fmt(finalX)}X final)`; add(per, mixLabel, mixVol, 'buffer', `${fmt(finalX)}X final`); checks.push({name:'Master mix',value:`${fmt(finalX)}X`}); }
+      else { mixVol = finalX * rxn / stockX; mixLabel = `PCR master mix (${fmt(finalX)}X final)`; add(per, mixLabel, mixVol, 'mix', `${fmt(finalX)}X final`); checks.push({name:'Master mix',value:`${fmt(finalX)}X`}); }
 
       if (!$('incBuffer').checked) addCalculated('PCR buffer', num('bufStock'), num('bufFinal'), 'buffer', 'X');
       if (!$('incMg').checked) addCalculated('MgCl₂', num('mgStock'), num('mgFinal'), 'buffer', 'mM');
-      if (!$('incDntp').checked) addCalculated('dNTP mix (each nucleotide)', num('dntpStock'), num('dntpFinal'), 'buffer', 'mM each');
+      if (!$('incDntp').checked) addCalculated('dNTP mix (each nucleotide)', num('dntpStock'), num('dntpFinal'), 'dntp', 'mM each');
       if (!$('incTaq').checked) addEnzyme('DNA polymerase', num('taqStock'), num('taqUnits'));
     } else {
       addCalculated('PCR buffer', num('manBufStock'), num('manBufFinal'), 'buffer', 'X');
       addCalculated('MgCl₂', num('manMgStock'), num('manMgFinal'), 'buffer', 'mM');
-      addCalculated('dNTP mix (each nucleotide)', num('manDntpStock'), num('manDntpFinal'), 'buffer', 'mM each');
+      addCalculated('dNTP mix (each nucleotide)', num('manDntpStock'), num('manDntpFinal'), 'dntp', 'mM each');
       addEnzyme('Taq / DNA polymerase', num('manTaqStock'), num('manTaqUnits'));
     }
 
@@ -457,12 +527,22 @@
     const sumBeforeWater = per.reduce((s,r)=>s+r.volume,0);
     const water = rxn - sumBeforeWater;
     if (water < -1e-9) errors.push(`Reagent volumes total ${fmt(sumBeforeWater)} µL, exceeding the ${fmt(rxn)} µL reaction by ${fmt(-water)} µL. Reduce reagent additions or increase the reaction volume.`);
-    if (errors.length) { showError(errors.join(' ')); return null; }
+    if (errors.length) { if (!quiet) showError(errors.join(' ')); return null; }
     const safeWater = Math.max(0, water);
     add(per, 'Nuclease-free water', safeWater, 'water');
-    // Display a consistent bench order: water first, then buffer/mix, primers, DNA, enzyme last.
-    const order = {water:0,buffer:1,primer:2,dna:3,enzyme:4,other:5};
-    per.sort((a,b)=>order[a.kind]-order[b.kind]);
+    // Strict bench sequence: water → buffer → dNTPs → primers → template → polymerase.
+    // A commercial master mix remains one combined row because its components are supplied together.
+    const benchOrder = (item) => {
+      const name = item.name.toLowerCase();
+      if (item.kind === 'water') return 0;
+      if (name.includes('dntp') || item.kind === 'dntp') return 2;
+      if (item.kind === 'primer') return 3;
+      if (item.kind === 'dna') return 4;
+      if (item.kind === 'enzyme') return 5;
+      if (item.kind === 'buffer' || item.kind === 'mix') return 1;
+      return 1;
+    };
+    per.sort((a,b)=>benchOrder(a)-benchOrder(b));
     const totalPer = per.reduce((s,r)=>s+r.volume,0);
     const equivalents = totalReactions * (1 + overage/100);
     const bulk = per.filter(r=>r.kind!=='dna').map(r=>({...r,volume:r.volume*equivalents}));
@@ -474,34 +554,175 @@
     return {rxn,totalReactions,equivalents,overage,per,bulk,bulkTotal,templateVol,checks,mode:state.mode};
   }
 
-  function renderRows(target, rows, totalLabel) {
+  const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reagentColor = (kind) => ({
+    water:'#149bd7', buffer:'#5965d8', mix:'#6477b9', dntp:'#2b9aa5',
+    primer:'#15976b', enzyme:'#c27b13', other:'#c35a68'
+  }[kind] || '#9aa8b8');
+
+  function animateNumber(element, target, duration = 300, suffix = '') {
+    const previous = Number(element.dataset.value || 0);
+    element.dataset.value = String(target);
+    if (reduceMotion()) {
+      element.textContent = `${fmt(target)}${suffix}`;
+      return;
+    }
+    const started = performance.now();
+    const tick = (now) => {
+      const progress = Math.min(1, (now - started) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = previous + (target - previous) * eased;
+      element.textContent = `${progress === 1 ? fmt(target) : fmt(value, 3)}${suffix}`;
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function renderRows(target, rows, totalLabel, animate = false) {
     const tbody = $(target); tbody.innerHTML='';
-    rows.forEach(r=>{
+    rows.forEach((r,index)=>{
       const tr=document.createElement('tr');
+      if (animate && !reduceMotion()) {
+        tr.classList.add('row-cascade');
+        tr.style.animationDelay = `${index * 40}ms`;
+      }
       const td1=document.createElement('td');
       const label=document.createElement('span');label.className='reagent-label';
       const dot=document.createElement('span');dot.className=`dot ${r.kind}`;
       const name=document.createElement('span');name.textContent=r.name;
       label.append(dot,name);td1.append(label);
-      const td2=document.createElement('td');td2.textContent=`${fmt(r.volume)} µL`;
+      const td2=document.createElement('td');
+      const value=document.createElement('span');value.className='volume-number';
+      value.dataset.value = animate ? '0' : String(r.volume);
+      value.textContent = animate && !reduceMotion() ? '0.0' : fmt(r.volume);
+      td2.append(value,document.createTextNode(' µL'));
       tr.append(td1,td2);tbody.append(tr);
+      if (animate && !reduceMotion()) {
+        window.setTimeout(() => animateNumber(value, r.volume, 300), index * 40);
+      }
     });
-    if(totalLabel){const tr=document.createElement('tr');const a=document.createElement('td');a.textContent='Total reaction volume';const b=document.createElement('td');b.textContent=`${fmt(totalLabel)} µL`;tr.append(a,b);tbody.append(tr);}
+    if(totalLabel !== null && totalLabel !== undefined){
+      const tr=document.createElement('tr');tr.className='total-row';
+      if (animate && !reduceMotion()) {tr.classList.add('row-cascade');tr.style.animationDelay=`${rows.length*40}ms`;}
+      const a=document.createElement('td');a.textContent='Total reaction volume';
+      const b=document.createElement('td');b.textContent=`${fmt(totalLabel)} µL`;
+      tr.append(a,b);tbody.append(tr);
+    }
   }
-  function renderResult(result) {
+
+  const TUBE_BOTTOM = 52;
+  const TUBE_HEIGHT = 42;
+  const TUBE_CAPACITY = 500;
+  let tubeFillRatio = 0;
+  let tubeFrame = 0;
+
+  function setTubeFill(ratio) {
+    const safeRatio = Math.max(0, Math.min(1, ratio));
+    const group = $('tubeLiquidBands');
+    const meniscus = $('tubeMeniscus');
+    group.setAttribute('transform', `translate(0 ${TUBE_BOTTOM}) scale(1 ${safeRatio}) translate(0 -${TUBE_BOTTOM})`);
+    const y = TUBE_BOTTOM - (TUBE_HEIGHT * safeRatio);
+    meniscus.setAttribute('d', `M14 ${y.toFixed(2)} Q22 ${(y + 1.2).toFixed(2)} 30 ${y.toFixed(2)}`);
+    meniscus.style.opacity = safeRatio > 0.015 ? '1' : '0';
+  }
+
+  function buildTubeBands(bulk) {
+    const group = $('tubeLiquidBands');
+    group.innerHTML = '';
+    const total = bulk.reduce((sum,item)=>sum+item.volume,0);
+    if (!Number.isFinite(total) || total <= 0) return;
+    let y = TUBE_BOTTOM;
+    bulk.forEach((item,index)=>{
+      const h = TUBE_HEIGHT * (item.volume / total);
+      y -= h;
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x','14');
+      rect.setAttribute('y',String(y));
+      rect.setAttribute('width','16');
+      rect.setAttribute('height',String(h + 0.08));
+      rect.setAttribute('fill',reagentColor(item.kind));
+      rect.setAttribute('data-reagent',item.name);
+      group.appendChild(rect);
+    });
+  }
+
+  function animateTube(targetRatio, animate = true) {
+    if (tubeFrame) cancelAnimationFrame(tubeFrame);
+    const from = tubeFillRatio;
+    const to = Math.max(0, Math.min(1, targetRatio));
+    if (!animate || reduceMotion()) {
+      tubeFillRatio = to;
+      setTubeFill(to);
+      return;
+    }
+    const started = performance.now();
+    const duration = 500;
+    const tick = (now) => {
+      const progress = Math.min(1, (now - started) / duration);
+      // Slightly springy ease-out, then settle at the exact calculated level.
+      const c1 = 1.70158, c3 = c1 + 1;
+      const eased = 1 + c3 * Math.pow(progress - 1, 3) + c1 * Math.pow(progress - 1, 2);
+      const current = from + (to - from) * eased;
+      setTubeFill(current);
+      if (progress < 1) tubeFrame = requestAnimationFrame(tick);
+      else { tubeFillRatio = to; tubeFrame = 0; setTubeFill(to); }
+    };
+    tubeFrame = requestAnimationFrame(tick);
+  }
+
+  function updateMixSummary(result, animate = true) {
+    const volume = $('outBulkVolume');
+    const context = $('outBulkContext');
+    if (!result) {
+      volume.dataset.value = '0';
+      volume.innerHTML = '— <span>µL</span>';
+      context.textContent = 'Enter valid reaction details to preview the shared mixture. Template DNA is excluded.';
+      buildTubeBands([]);
+      animateTube(0, animate);
+      return;
+    }
+    const currentValue = Number(volume.dataset.value || 0);
+    volume.dataset.value = String(result.bulkTotal);
+    if (animate && !reduceMotion()) {
+      const valueSpan = document.createElement('span');
+      valueSpan.className = 'summary-number-roll';
+      valueSpan.dataset.value = String(currentValue);
+      valueSpan.textContent = `${fmt(currentValue)} `;
+      volume.innerHTML = '';
+      volume.append(valueSpan, document.createTextNode(' '));
+      const unit = document.createElement('span');unit.textContent='µL';volume.append(unit);
+      animateNumber(valueSpan, result.bulkTotal, 500, '');
+    } else {
+      volume.innerHTML = '';
+      volume.append(document.createTextNode(`${fmt(result.bulkTotal)} `));
+      const unit = document.createElement('span');unit.textContent='µL';volume.append(unit);
+    }
+    const extraText = `${fmt(result.overage)}% extra`;
+    context.textContent = `${result.totalReactions} planned tubes · ${extraText} · template DNA excluded`;
+    buildTubeBands(result.bulk);
+    animateTube(result.bulkTotal / TUBE_CAPACITY, animate);
+  }
+
+  function renderResult(result, animate = true) {
     state.lastResult=result;
-    $('emptyState').classList.add('hidden');$('resultContent').classList.add('show');
+    $('emptyState').classList.add('hidden');$('resultContent').classList.remove('hidden');$('resultContent').classList.add('show');
     $('outTubes').textContent=result.totalReactions;
     $('outEquiv').textContent=fmt(result.equivalents,2);
     $('outReactionVolume').textContent=`${fmt(result.rxn)} µL total`;
-    $('outBulkVolume').textContent=`${fmt(result.bulkTotal)} µL common mix`;
-    renderRows('perTable',result.per,result.rxn);
-    renderRows('bulkTable',result.bulk,result.bulkTotal);
+    updateMixSummary(result, animate);
+    renderRows('perTable',result.per,result.rxn,animate);
+    renderRows('bulkTable',result.bulk,result.bulkTotal,false);
     const note=`Prepare ${fmt(result.bulkTotal)} µL of common master mix for ${result.totalReactions} reaction tubes, including ${fmt(result.overage)}% extra (${fmt(result.equivalents,2)} reaction equivalents). Dispense ${fmt(result.rxn-result.templateVol)} µL common mix per tube, then add ${fmt(result.templateVol)} µL template separately. For NTCs, substitute the same volume of nuclease-free water for template.`;
     $('bulkNote').textContent=note;
     const checks=$('checkTable');checks.innerHTML='';
     result.checks.forEach(c=>{const tr=document.createElement('tr');const a=document.createElement('td');a.textContent=c.name;const b=document.createElement('td');b.textContent=c.value;tr.append(a,b);checks.append(tr);});
-    $('resultPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+    $('resultPanel').scrollIntoView({behavior:reduceMotion()?'auto':'smooth',block:'nearest'});
+  }
+
+  function refreshLivePreview(animate = true) {
+    if (state.lastResult) clearResults();
+    const preview = calculate({quiet:true});
+    updateMixSummary(preview, animate);
   }
 
   async function handleSubmit(event) {
@@ -511,7 +732,7 @@
     await new Promise(resolve=>setTimeout(resolve,520));
     const result=calculate();
     $('loadingOverlay').classList.remove('show');$('calculateBtn').disabled=false;state.busy=false;
-    if(result){renderResult(result);notify('Reaction volumes calculated and balanced.');}
+    if(result){renderResult(result,true);notify('Reaction volumes calculated and balanced.');}
   }
 
   function clearResults() {
@@ -526,13 +747,16 @@
       else if(input.type==='radio') input.checked=input.value==='fixed';
       else input.value='';
     });
+    $('overage').value='0';
     toggleMode('commercial');updateTemplateMode();updateCommercialExtras();clearResults();
+    updateMixSummary(null,false);
     $('inputPanel').classList.remove('wipe');void $('inputPanel').offsetWidth;$('inputPanel').classList.add('wipe');
   }
   function loadExample() {
     form.reset();
     // Reapply explicit example values; values are transient and are not persisted.
     toggleMode('commercial');updateTemplateMode();updateCommercialExtras();clearResults();
+    refreshLivePreview(true);
     $('inputPanel').classList.remove('wipe');void $('inputPanel').offsetWidth;$('inputPanel').classList.add('wipe');
     notify('Example reaction loaded. Check it against your reagent datasheet.');
   }
@@ -554,13 +778,11 @@
     const csv=rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pcr-reaction-mixture.csv';document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);notify('CSV exported.');
   }
-  $('commercialTab').addEventListener('click',()=>toggleMode('commercial'));
-  $('manualTab').addEventListener('click',()=>toggleMode('manual'));
-  document.querySelectorAll('input[name="templateMode"]').forEach(x=>x.addEventListener('change',updateTemplateMode));
-  ['incBuffer','incMg','incDntp','incTaq'].forEach(id=>$(id).addEventListener('change',updateCommercialExtras));
-  const invalidateResult = () => { if (state.lastResult) clearResults(); };
-  form.addEventListener('input', invalidateResult);
-  form.addEventListener('change', invalidateResult);
+  $('commercialTab').addEventListener('click',()=>{toggleMode('commercial');refreshLivePreview(true);});
+  $('manualTab').addEventListener('click',()=>{toggleMode('manual');refreshLivePreview(true);});
+  document.querySelectorAll('input[name="templateMode"]').forEach(x=>x.addEventListener('change',()=>{updateTemplateMode();refreshLivePreview(true);}));
+  ['incBuffer','incMg','incDntp','incTaq'].forEach(id=>$(id).addEventListener('change',()=>{updateCommercialExtras();refreshLivePreview(true);}));
+  form.addEventListener('input',()=>refreshLivePreview(true));
   form.addEventListener('submit',handleSubmit);
   $('clearBtn').addEventListener('click',()=> $('clearModal').classList.add('show'));
   $('cancelClear').addEventListener('click',()=> $('clearModal').classList.remove('show'));
@@ -569,8 +791,9 @@
   $('refreshBtn').addEventListener('click',()=>{$('refreshSweep').classList.remove('go');void $('refreshSweep').offsetWidth;$('refreshSweep').classList.add('go');setTimeout(()=>location.reload(),720);});
   $('loadExampleBtn').addEventListener('click',loadExample);
   $('copyBtn').addEventListener('click',copyResult);$('csvBtn').addEventListener('click',exportCSV);
-  // Start with a ready-to-edit example, but never write it to persistent browser storage.
-  updateTemplateMode();updateCommercialExtras();
+  // Start with a ready-to-edit example and an animated live volume preview.
+  // All calculations stay in memory; no values are written to browser storage.
+  updateTemplateMode();updateCommercialExtras();refreshLivePreview(true);
 })();
 </script>
 </body>
