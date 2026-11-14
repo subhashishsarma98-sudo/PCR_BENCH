@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fa">
+  <meta name="description" content="A privacy-first PCR reaction mixture calculator for commercial master mixes and manually assembled PCR reactions.">
+  <title>PCR Bench — Reaction Mixture Calculator</title>
+  <style>
+    :root{
+      --ink:#172033;--muted:#657187;--line:#e4e9f0;--paper:#f4f6f8;--card:#ffffff;
+      --water:#149bd7;--water-bg:#eaf7fd;--buffer:#5965d8;--buffer-bg:#f0f1ff;
+      --primer:#15976b;--primer-bg:#eaf8f1;--enzyme:#c27b13;--enzyme-bg:#fff5df;
+      --dna:#8056c7;--dna-bg:#f4efff;--other:#c35a68;--other-bg:#fff0f1;
+      --success:#16845d;--danger:#bd4242;--shadow:0 12px 32px rgba(29,45,71,.07);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .topbar{position:sticky;top:0;z-index:10;background:rgba(248,250,252,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(220,227,236,.8)}
+    .topbar-inner{max-width:1180px;margin:auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.03em;font-size:18px}
+    .brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#dff4ff,#e7e9ff);display:grid;place-items:center;border:1px solid #dce9f6}
+    .brand-mark svg{width:25px;height:25px}
+    .top-actions{display:flex;gap:8px;align-items:center}
+    .privacy{font-size:12px;color:#526174;display:flex;align-items:center;gap:6px;margin-right:8px}
+    .privacy svg{color:var(--success)}
+    .btn{border:1px solid var(--line);background:#fff;color:#334055;padding:9px 13px;border-radius:11px;font-weight:650;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .18s,box-shadow .18s,border-color .18s,background .18s}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(29,45,71,.08);border-color:#cbd5e1}
+    .btn:active{transform:translateY(0) scale(.98)}
+    .btn-primary{background:#24334c;color:white;border-color:#24334c}
+    .btn-primary:hover{background:#30435f;border-color:#30435f}
+    .btn-soft{background:#f8fafc}
+    .btn-danger{color:#a53e48;background:#fff8f8;border-color:#f3dadd}
+    .btn svg{width:16px;height:16px;flex:none}
+    main{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+    .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:26px}
+    .eyebrow{color:#60728a;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;margin-bottom:8px}
+    h1{font-size:clamp(30px,4vw,43px);line-height:1.08;letter-spacing:-.045em;margin:0 0 10px;font-weight:800}
+    .hero p{margin:0;color:var(--muted);max-width:680px;font-size:15px}
+    .hero-chip{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 15px;min-width:180px;box-shadow:0 4px 18px rgba(29,45,71,.04)}
+    .hero-chip strong{display:block;font-size:13px}.hero-chip span{font-size:11px;color:var(--muted)}
+    .layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(350px,.85fr);gap:22px;align-items:start}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .panel-head{padding:19px 21px 16px;border-bottom:1px solid #edf0f4;display:flex;align-items:center;justify-content:space-between;gap:15px}
+    .panel-head h2{font-size:16px;margin:0;letter-spacing:-.02em}.panel-head p{font-size:12px;color:var(--muted);margin:3px 0 0}
+    .panel-body{padding:20px 21px 22px}
+    .section{margin-bottom:22px}.section:last-child{margin-bottom:0}
+    .section-title{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:800;margin:0 0 13px;color:#29364b}
+    .section-title .num{width:23px;height:23px;display:grid;place-items:center;border-radius:8px;background:#eef2f6;color:#516176;font-size:11px}
+    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .field{min-width:0}.field label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#4b596d;font-weight:700;margin-bottom:6px}
+    .field small{font-weight:500;color:#8792a2;font-size:10px}
+    .field input,.field select{width:100%;min-width:0;border:1px solid #dce3eb;background:#fbfcfd;border-radius:10px;padding:10px 11px;color:#1e2b40;outline:none;transition:border .18s,box-shadow .18s,background .18s;font-variant-numeric:tabular-nums}
+    .field input:focus,.field select:focus{border-color:#7aa9cc;box-shadow:0 0 0 3px rgba(20,155,215,.11);background:#fff}
+    .field input::placeholder{color:#a5afbd}.unit-wrap{position:relative}.unit-wrap input{padding-right:48px}.unit{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:#8792a2;font-size:11px;pointer-events:none}
+    .hint{font-size:11px;color:#7a8798;margin:7px 0 0;line-height:1.45}
+    .mode-switch{display:flex;gap:5px;background:#f0f3f7;padding:4px;border-radius:12px}
+    .mode-switch button{border:0;background:transparent;color:#69778a;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:750;flex:1;transition:all .18s}
+    .mode-switch button.active{background:#fff;color:#24334c;box-shadow:0 2px 7px rgba(30,45,65,.09)}
+    .reagent-card{border:1px solid var(--line);border-left:4px solid #cbd5e1;border-radius:13px;padding:13px 14px;background:#fff;margin-bottom:10px;transition:transform .2s,box-shadow .2s,opacity .2s}
+    .reagent-card:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(31,47,70,.05)}
+    .reagent-card.water{border-left-color:var(--water);background:linear-gradient(90deg,var(--water-bg),#fff 36%)}
+    .reagent-card.buffer{border-left-color:var(--buffer);background:linear-gradient(90deg,var(--buffer-bg),#fff 36%)}
+    .reagent-card.primer{border-left-color:var(--primer);background:linear-gradient(90deg,var(--primer-bg),#fff 36%)}
+    .reagent-card.enzyme{border-left-color:var(--enzyme);background:linear-gradient(90deg,var(--enzyme-bg),#fff 36%)}
+    .reagent-card.dna{border-left-color:var(--dna);background:linear-gradient(90deg,var(--dna-bg),#fff 36%)}
+    .reagent-card.other{border-left-color:var(--other);background:linear-gradient(90deg,var(--other-bg),#fff 36%)}
+    .reagent-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}
+    .reagent-name{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800}
+    .pill{padding:4px 8px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap}
+    .pill.water{background:#dff3fc;color:#0876ab}.pill.buffer{background:#e5e7ff;color:#4a53bc}.pill.primer{background:#dcf3e7;color:#08794f}.pill.enzyme{background:#ffedc6;color:#96600a}.pill.dna{background:#ede4ff;color:#7042b4}.pill.other{background:#ffe2e5;color:#a74250}
+    .included-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#4b596d;padding:8px 0 2px}
+    .included-row input{accent-color:#5666d8;width:15px;height:15px}
+    .divider{height:1px;background:#edf0f4;margin:18px 0}
+    .template-toggle{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+    .radio-pill{display:flex;align-items:center;gap:7px;border:1px solid #e0e6ee;border-radius:9px;padding:7px 10px;font-size:11px;color:#566478;background:#fff;cursor:pointer}
+    .radio-pill input{accent-color:#7555c4}
+    .callout{border-radius:12px;background:#f7f9fb;border:1px solid #e8edf2;padding:11px 12px;font-size:11px;color:#607086;display:flex;gap:9px;align-items:flex-start;line-height:1.5}
+    .callout strong{color:#38485f}
+    .callout svg{width:16px;height:16px;flex:none;color:#6f82a0;margin-top:1px}
+    .order-note{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+    .order-step{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:750;color:#526174;background:#f6f8fa;border:1px solid #e8edf2;padding:6px 9px;border-radius:20px}
+    .order-step b{width:16px;height:16px;display:grid;place-items:center;border-radius:50%;background:#e7edf4;font-size:9px}
+    .result-panel{position:sticky;top:84px}
+    .result-empty{padding:34px 24px;text-align:center}.empty-icon{width:66px;height:66px;margin:0 auto 13px;border-radius:20px;background:linear-gradient(145deg,#e9f6fd,#f0efff);display:grid;place-items:center}.empty-icon svg{width:32px;height:32px;color:#6682a2}
+    .result-empty h3{margin:0 0 6px;font-size:15px}.result-empty p{margin:0 auto;color:var(--muted);font-size:12px;max-width:260px}
+    .result-content{display:none;padding:18px 20px 21px}.result-content.show{display:block;animation:rise .38s ease both}
+    .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:17px}
+    .metric{background:#f7f9fb;border:1px solid #edf0f4;padding:11px 12px;border-radius:12px}.metric span{font-size:10px;color:#78869a;display:block}.metric strong{font-size:20px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.metric em{font-size:10px;color:#8792a2;font-style:normal;margin-left:3px}
+    .result-caption{display:flex;align-items:center;justify-content:space-between;margin:16px 0 9px;font-size:12px;font-weight:800}.result-caption small{font-size:10px;color:#8a95a4;font-weight:600}
+    .table-wrap{overflow-x:auto;border:1px solid #e9edf2;border-radius:11px}
+    table{border-collapse:collapse;width:100%;font-size:11px;min-width:280px}th{text-align:left;background:#f7f9fb;color:#748196;font-size:10px;letter-spacing:.03em;font-weight:800;padding:9px 10px}td{padding:9px 10px;border-top:1px solid #edf0f4;color:#354359}td:last-child,th:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:750}
+    tr:last-child td{font-weight:850;background:#fbfcfd;color:#1e2b40}
+    .reagent-label{display:flex;align-items:center;gap:7px}.dot{width:8px;height:8px;border-radius:50%;background:#aab4c1}.dot.water{background:var(--water)}.dot.buffer{background:var(--buffer)}.dot.primer{background:var(--primer)}.dot.enzyme{background:var(--enzyme)}.dot.dna{background:var(--dna)}.dot.other{background:var(--other)}
+    .bulk-note{margin-top:12px;padding:11px 12px;background:#f4f8ff;border:1px solid #e2eafa;border-radius:11px;font-size:11px;color:#596b85;line-height:1.5}
+    .result-actions{display:flex;gap:8px;margin-top:15px}.result-actions .btn{flex:1}
+    .validation{display:none;margin:0 0 14px;padding:11px 12px;border-radius:11px;background:#fff1f1;border:1px solid #f4d1d1;color:#a43f43;font-size:12px;line-height:1.5}.validation.show{display:block;animation:shake .3s ease}
+    .footer{margin-top:22px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;color:#8994a3;font-size:11px}.footer p{margin:0;max-width:740px}.footer a{color:#61738d;text-decoration:none}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(19,30,48,.32);backdrop-filter:blur(5px);z-index:30;display:none;align-items:center;justify-content:center;padding:20px}.modal-backdrop.show{display:flex;animation:fade .2s ease}.modal{background:white;width:min(460px,100%);border-radius:18px;padding:22px;box-shadow:0 24px 70px rgba(10,20,40,.22);animation:pop .25s ease}.modal h3{margin:0 0 6px;font-size:17px}.modal p{color:var(--muted);font-size:12px;margin:0 0 15px}.modal-actions{display:flex;justify-content:flex-end;gap:8px}
+    .toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:50;background:#20314a;color:white;padding:10px 15px;border-radius:12px;font-size:12px;box-shadow:0 8px 26px rgba(20,35,56,.2);transition:all .25s}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .loading-overlay{position:fixed;inset:0;background:rgba(246,249,252,.82);backdrop-filter:blur(5px);z-index:40;display:none;align-items:center;justify-content:center}.loading-overlay.show{display:flex}.loading-card{background:white;border:1px solid var(--line);border-radius:18px;padding:23px 30px;text-align:center;box-shadow:var(--shadow);min-width:230px}.spinner{width:36px;height:36px;border:3px solid #e5edf5;border-top-color:#1997c9;border-radius:50%;margin:0 auto 12px;animation:spin .8s linear infinite}.loading-card strong{display:block;font-size:13px}.loading-card span{display:block;color:#8290a2;font-size:11px;margin-top:4px}
+    .refresh-sweep{position:fixed;inset:0;z-index:60;pointer-events:none;transform:translateY(-105%);background:linear-gradient(180deg,rgba(207,239,252,.96),rgba(238,239,255,.96));display:grid;place-items:center}.refresh-sweep.go{animation:sweep .8s ease-in-out forwards}.refresh-sweep .sweep-inner{font-weight:850;letter-spacing:-.03em;font-size:19px;color:#30435e;opacity:0;animation:fadeUp .6s .13s forwards}
+    .wipe{animation:wipe .42s ease both}
+    .hidden{display:none!important}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fade{from{opacity:0}to{opacity:1}}
+    @keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+    @keyframes sweep{0%{transform:translateY(-105%)}45%{transform:translateY(0)}75%{transform:translateY(0)}100%{transform:translateY(105%)}}
+    @keyframes fadeUp{to{opacity:1}}
+    @keyframes wipe{0%{opacity:1;transform:scale(1)}45%{opacity:.35;transform:scale(.985)}100%{opacity:1;transform:scale(1)}}
+    @media(max-width:920px){.layout{grid-template-columns:1fr}.result-panel{position:static}.hero{align-items:flex-start}.hero-chip{display:none}}
+    @media(max-width:560px){.topbar-inner{padding:10px 14px}.privacy{display:none}main{padding:25px 14px 48px}.hero{margin-bottom:19px}.hero p{font-size:13px}.panel-head{padding:16px}.panel-body{padding:16px}.grid-2,.grid-3{grid-template-columns:1fr 1fr}.top-actions .btn span{display:none}.top-actions .btn{padding:9px}.footer{display:block}.footer p+ p{margin-top:9px}.result-content{padding:15px}.panel-head h2{font-size:15px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none"><path d="M10 4h12M12 4v8.2L6.9 23.5A3 3 0 0 0 9.6 28h12.8a3 3 0 0 0 2.7-4.5L20 12.2V4" stroke="#405879" stroke-width="1.8" stroke-linecap="round"/><path d="M9.2 20.2h13.6l2.3 4.2a2.2 2.2 0 0 1-2 3.2H8.9a2.2 2.2 0 0 1-2-3.2l2.3-4.2Z" fill="#7fd0ed" opacity=".85"/><circle cx="14" cy="23" r="1" fill="#fff"/><circle cx="19" cy="25" r="1.1" fill="#fff"/></svg>
+        </div>
+        <span>PCR <span style="color:#6c86a2">Bench</span></span>
+      </div>
+      <div class="top-actions">
+        <div class="privacy" title="Your entries are processed locally and are not saved."><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg> No data saved</div>
+        <button class="btn btn-soft" id="clearBtn" type="button" title="Clear all entries"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/></svg><span>Clear entries</span></button>
+        <button class="btn btn-soft" id="refreshBtn" type="button" title="Refresh calculator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.9-2L20 12M4 12l2.5 5a7 7 0 0 0 11.9-2"/></svg><span>Refresh</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Molecular biology · Bench calculation tool</div>
+        <h1>PCR reaction<br>mixture calculator</h1>
+        <p>Build a balanced PCR recipe, calculate working volumes for multiple tubes, and keep every reagent in the right units. Your entries stay in this page only.</p>
+      </div>
+      <div class="hero-chip"><strong>Built for the wet lab</strong><span>µL · µM · mM · ng · U</span></div>
+    </section>
+
+    <div class="layout">
+      <section class="panel" id="inputPanel">
+        <div class="panel-head">
+          <div><h2>Reaction setup</h2><p>Enter values from your reagent labels and validated protocol.</p></div>
+          <span class="pill" style="background:#edf3f8;color:#5d7088">SETUP</span>
+        </div>
+        <div class="panel-body">
+          <div class="validation" id="errorBox" role="alert"></div>
+          <form id="pcrForm" autocomplete="off" novalidate>
+            <div class="section">
+              <h3 class="section-title"><span class="num">01</span> Experiment details</h3>
+              <div class="grid-3">
+                <div class="field"><label for="reactionVolume">Reaction volume <small>per tube</small></label><div class="unit-wrap"><input id="reactionVolume" type="number" min="0.01" step="any" value="25"><span class="unit">µL</span></div></div>
+                <div class="field"><label for="samples">Samples</label><input id="samples" type="number" min="0" step="1" value="5"></div>
+                <div class="field"><label for="replicates">Replicates <small>per sample</small></label><input id="replicates" type="number" min="1" step="1" value="1"></div>
+                <div class="field"><label for="positiveControls">Positive controls</label><input id="positiveControls" type="number" min="0" step="1" value="1"></div>
+                <div class="field"><label for="ntcControls">No-template controls</label><input id="ntcControls" type="number" min="0" step="1" value="1"></div>
+                <div class="field"><label for="overage">Extra volume <small>pipetting allowance</small></label><div class="unit-wrap"><input id="overage" type="number" min="0" max="100" step="any" value="10"><span class="unit">%</span></div></div>
+              </div>
+              <p class="hint">Total tubes = (samples × replicates) + positive controls + NTCs. Extra volume is applied to the shared mix, not to the DNA template.</p>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section">
+              <h3 class="section-title"><span class="num">02</span> Reagent preparation mode</h3>
+              <div class="mode-switch" role="tablist" aria-label="PCR preparation mode">
+                <button type="button" class="active" id="commercialTab" role="tab" aria-selected="true">Commercial master mix</button>
+                <button type="button" id="manualTab" role="tab" aria-selected="false">Individual reagents</button>
+              </div>
+            </div>
+
+            <div id="commercialMode">
+              <div class="section">
+                <h3 class="section-title"><span class="num">03</span> Commercial master mix</h3>
+                <div class="reagent-card buffer">
+                  <div class="reagent-top"><div class="reagent-name">▰ Master mix</div><span class="pill buffer">BUFFER CLASS</span></div>
+                  <div class="grid-2">
+                    <div class="field"><label for="mixStock">Stock strength</label><div class="unit-wrap"><input id="mixStock" type="number" min="0.01" step="any" value="2"><span class="unit">×</span></div></div>
+                    <div class="field"><label for="mixFinal">Desired final strength</label><div class="unit-wrap"><input id="mixFinal" type="number" min="0.01" step="any" value="1"><span class="unit">×</span></div></div>
+                  </div>
+                  <p class="hint">Example: 2X stock used at 1X in the finished reaction. Follow the manufacturer's specified use concentration.</p>
+                </div>
+                <div class="reagent-card other">
+                  <div class="reagent-top"><div class="reagent-name">Components already included</div><span class="pill other">AVOID DUPLICATES</span></div>
+                  <label class="included-row"><input type="checkbox" id="incBuffer" checked> PCR buffer</label>
+                  <label class="included-row"><input type="checkbox" id="incMg" checked> MgCl₂</label>
+                  <label class="included-row"><input type="checkbox" id="incDntp" checked> dNTPs</label>
+                  <label class="included-row"><input type="checkbox" id="incTaq" checked> DNA polymerase</label>
+                  <p class="hint">Only components checked here are assumed to be present in your premix. Uncheck a component only when the product datasheet confirms it is absent; the calculator will then ask for its separate stock details.</p>
+                </div>
+                <div id="commercialExtras" class="hidden">
+                  <div class="callout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg><span>Enter only the components <strong>not included</strong> in your premix. Do not add a component twice.</span></div>
+                  <div id="extraBuffer" class="reagent-card buffer hidden" style="margin-top:10px"><div class="reagent-top"><div class="reagent-name">PCR buffer</div><span class="pill buffer">BUFFER</span></div><div class="grid-2"><div class="field"><label for="bufStock">Stock strength</label><div class="unit-wrap"><input id="bufStock" type="number" min="0.01" step="any" value="10"><span class="unit">×</span></div></div><div class="field"><label for="bufFinal">Final strength</label><div class="unit-wrap"><input id="bufFinal" type="number" min="0.01" step="any" value="1"><span class="unit">×</span></div></div></div></div>
+                  <div id="extraMg" class="reagent-card buffer hidden"><div class="reagent-top"><div class="reagent-name">MgCl₂</div><span class="pill buffer">mM</span></div><div class="grid-2"><div class="field"><label for="mgStock">Stock concentration</label><div class="unit-wrap"><input id="mgStock" type="number" min="0.001" step="any" value="25"><span class="unit">mM</span></div></div><div class="field"><label for="mgFinal">Desired final concentration</label><div class="unit-wrap"><input id="mgFinal" type="number" min="0.001" step="any" value="1.5"><span class="unit">mM</span></div></div></div></div>
+                  <div id="extraDntp" class="reagent-card buffer hidden"><div class="reagent-top"><div class="reagent-name">dNTP mix</div><span class="pill buffer">mM EACH</span></div><div class="grid-2"><div class="field"><label for="dntpStock">Stock per nucleotide</label><div class="unit-wrap"><input id="dntpStock" type="number" min="0.001" step="any" value="10"><span class="unit">mM each</span></div></div><div class="field"><label for="dntpFinal">Final per nucleotide</label><div class="unit-wrap"><input id="dntpFinal" type="number" min="0.001" step="any" value="0.2"><span class="unit">mM each</span></div></div></div><p class="hint">Enter the concentration of each dNTP in the premixed solution, not the sum of all four, unless the datasheet explicitly defines it that way.</p></div>
+                  <div id="extraTaq" class="reagent-card enzyme hidden"><div class="reagent-top"><div class="reagent-name">DNA polymerase</div><span class="pill enzyme">ENZYME</span></div><div class="grid-2"><div class="field"><label for="taqStock">Stock activity</label><div class="unit-wrap"><input id="taqStock" type="number" min="0.001" step="any" value="5"><span class="unit">U/µL</span></div></div><div class="field"><label for="taqUnits">Required activity</label><div class="unit-wrap"><input id="taqUnits" type="number" min="0.001" step="any" value="1.25"><span class="unit">U / rxn</span></div></div></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div id="manualMode" class="hidden">
+              <div class="section">
+                <h3 class="section-title"><span class="num">03</span> Individual reagent stocks</h3>
+                <div class="reagent-card buffer">
+                  <div class="reagent-top"><div class="reagent-name">PCR buffer</div><span class="pill buffer">BUFFER</span></div>
+                  <div class="grid-2"><div class="field"><label for="manBufStock">Stock strength</label><div class="unit-wrap"><input id="manBufStock" type="number" min="0.01" step="any" value="10"><span class="unit">×</span></div></div><div class="field"><label for="manBufFinal">Final strength</label><div class="unit-wrap"><input id="manBufFinal" type="number" min="0.01" step="any" value="1"><span class="unit">×</span></div></div></div>
+                </div>
+                <div class="reagent-card buffer">
+                  <div class="reagent-top"><div class="reagent-name">MgCl₂</div><span class="pill buffer">MAGNESIUM</span></div>
+                  <div class="grid-2"><div class="field"><label for="manMgStock">Stock concentration</label><div class="unit-wrap"><input id="manMgStock" type="number" min="0.001" step="any" value="25"><span class="unit">mM</span></div></div><div class="field"><label for="manMgFinal">Desired final concentration</label><div class="unit-wrap"><input id="manMgFinal" type="number" min="0.001" step="any" value="1.5"><span class="unit">mM</span></div></div></div>
+                </div>
+                <div class="reagent-card buffer">
+                  <div class="reagent-top"><div class="reagent-name">dNTP mix</div><span class="pill buffer">mM EACH</span></div>
+                  <div class="grid-2"><div class="field"><label for="manDntpStock">Stock per nucleotide</label><div class="unit-wrap"><input id="manDntpStock" type="number" min="0.001" step="any" value="10"><span class="unit">mM each</span></div></div><div class="field"><label for="manDntpFinal">Final per nucleotide</label><div class="unit-wrap"><input id="manDntpFinal" type="number" min="0.001" step="any" value="0.2"><span class="unit">mM each</span></div></div></div><p class="hint">Use the concentration per nucleotide stated by the supplier. Do not confuse “10 mM each” with “10 mM total”.</p>
+                </div>
+                <div class="reagent-card enzyme">
+                  <div class="reagent-top"><div class="reagent-name">Taq / DNA polymerase</div><span class="pill enzyme">ENZYME</span></div>
+                  <div class="grid-2"><div class="field"><label for="manTaqStock">Stock activity</label><div class="unit-wrap"><input id="manTaqStock" type="number" min="0.001" step="any" value="5"><span class="unit">U/µL</span></div></div><div class="field"><label for="manTaqUnits">Required activity</label><div class="unit-wrap"><input id="manTaqUnits" type="number" min="0.001" step="any" value="1.25"><span class="unit">U / rxn</span></div></div></div><p class="hint">Use the enzyme units per reaction recommended by its manufacturer or validated protocol. High-fidelity enzymes may have different requirements.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section">
+              <h3 class="section-title"><span class="num">04</span> Primers</h3>
+              <div class="grid-2">
+                <div class="reagent-card primer" style="margin:0">
+                  <div class="reagent-top"><div class="reagent-name">Forward primer</div><span class="pill primer">FWD</span></div>
+                  <div class="field"><label for="fwdName">Primer name</label><input id="fwdName" type="text" value="27F"></div>
+                  <div class="field" style="margin-top:9px"><label for="fwdStock">Stock concentration</label><div class="unit-wrap"><input id="fwdStock" type="number" min="0.001" step="any" value="10"><span class="unit">µM</span></div></div>
+                  <div class="field" style="margin-top:9px"><label for="fwdFinal">Desired final concentration</label><div class="unit-wrap"><input id="fwdFinal" type="number" min="0.001" step="any" value="0.4"><span class="unit">µM</span></div></div>
+                </div>
+                <div class="reagent-card primer" style="margin:0">
+                  <div class="reagent-top"><div class="reagent-name">Reverse primer</div><span class="pill primer">REV</span></div>
+                  <div class="field"><label for="revName">Primer name</label><input id="revName" type="text" value="1492R"></div>
+                  <div class="field" style="margin-top:9px"><label for="revStock">Stock concentration</label><div class="unit-wrap"><input id="revStock" type="number" min="0.001" step="any" value="10"><span class="unit">µM</span></div></div>
+                  <div class="field" style="margin-top:9px"><label for="revFinal">Desired final concentration</label><div class="unit-wrap"><input id="revFinal" type="number" min="0.001" step="any" value="0.4"><span class="unit">µM</span></div></div>
+                </div>
+              </div>
+              <p class="hint">Forward and reverse primers are calculated independently. Primer stock and final concentration must use the same units (µM).</p>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section">
+              <h3 class="section-title"><span class="num">05</span> Template DNA</h3>
+              <div class="template-toggle">
+                <label class="radio-pill"><input type="radio" name="templateMode" value="fixed" checked> Fixed template volume</label>
+                <label class="radio-pill"><input type="radio" name="templateMode" value="mass"> Calculate from DNA mass</label>
+              </div>
+              <div id="templateFixed" class="reagent-card dna">
+                <div class="reagent-top"><div class="reagent-name">DNA template</div><span class="pill dna">TEMPLATE</span></div>
+                <div class="field"><label for="templateVolume">Template volume per tube</label><div class="unit-wrap"><input id="templateVolume" type="number" min="0" step="any" value="1"><span class="unit">µL</span></div></div>
+              </div>
+              <div id="templateMass" class="reagent-card dna hidden">
+                <div class="reagent-top"><div class="reagent-name">DNA template</div><span class="pill dna">MASS-BASED</span></div>
+                <div class="grid-2"><div class="field"><label for="dnaStock">DNA concentration</label><div class="unit-wrap"><input id="dnaStock" type="number" min="0.001" step="any" value="20"><span class="unit">ng/µL</span></div></div><div class="field"><label for="dnaTarget">Desired DNA mass</label><div class="unit-wrap"><input id="dnaTarget" type="number" min="0.001" step="any" value="20"><span class="unit">ng</span></div></div></div>
+                <p class="hint">The calculator determines template volume = target DNA mass ÷ DNA stock concentration. For samples with different DNA concentrations, calculate each template separately and keep the template slot volume consistent by adjusting water.</p>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section">
+              <h3 class="section-title"><span class="num">06</span> Calculate and review</h3>
+              <div class="callout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18m9-9H3"/><circle cx="12" cy="12" r="9"/></svg><span>All calculations use the values you enter. Confirm stock concentrations, formulation and recommended final concentrations against the reagent datasheet or validated protocol before preparing a reaction.</span></div>
+              <div style="display:flex;gap:9px;margin-top:14px;flex-wrap:wrap">
+                <button class="btn btn-primary" type="submit" id="calculateBtn" style="flex:1;min-width:170px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h4l2-7 4 14 2-7h4"/></svg> Calculate mixture</button>
+                <button class="btn btn-soft" type="button" id="loadExampleBtn">Load example</button>
+              </div>
+              <div class="order-note"><span class="order-step"><b>1</b> Water first</span><span class="order-step"><b>2</b> Buffer & primers</span><span class="order-step"><b>3</b> Template</span><span class="order-step"><b>4</b> Polymerase last</span></div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <aside class="panel result-panel" id="resultPanel">
+        <div class="panel-head"><div><h2>Calculated recipe</h2><p>Per reaction and bulk preparation</p></div><span class="pill" style="background:#eaf8f1;color:#16845d">OUTPUT</span></div>
+        <div class="result-empty" id="emptyState">
+          <div class="empty-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 4h12M12 4v8l-5.5 11A3 3 0 0 0 9.2 27h13.6a3 3 0 0 0 2.7-4L20 12V4"/><path d="M9 20h14"/><circle cx="14" cy="23" r="1" fill="currentColor"/><circle cx="19" cy="24" r="1" fill="currentColor"/></svg></div>
+          <h3>Your recipe will appear here</h3><p>Enter the reagent details and select “Calculate mixture” to see volumes, concentrations and bulk master mix quantities.</p>
+        </div>
+        <div class="result-content" id="resultContent" aria-live="polite">
+          <div class="metric-grid">
+            <div class="metric"><span>Total PCR tubes</span><strong id="outTubes">—</strong></div>
+            <div class="metric"><span>Mix equivalents + excess</span><strong id="outEquiv">—</strong></div>
+          </div>
+          <div class="result-caption"><span>Per-reaction recipe</span><small id="outReactionVolume">25 µL total</small></div>
+          <div class="table-wrap"><table><thead><tr><th>Reagent</th><th>Volume / tube</th></tr></thead><tbody id="perTable"></tbody></table></div>
+          <div class="result-caption"><span>Bulk common mix</span><small id="outBulkVolume">—</small></div>
+          <div class="table-wrap"><table><thead><tr><th>Reagent</th><th>Total volume</th></tr></thead><tbody id="bulkTable"></tbody></table></div>
+          <div class="bulk-note" id="bulkNote"></div>
+          <div class="result-caption"><span>Concentration check</span><small>Calculated final values</small></div>
+          <div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Final value</th></tr></thead><tbody id="checkTable"></tbody></table></div>
+          <div class="result-actions">
+            <button class="btn btn-primary" type="button" id="copyBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg> Copy recipe</button>
+            <button class="btn btn-soft" type="button" id="csvBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m-4-4 4 4 4-4M5 21h14"/></svg> Export CSV</button>
+          </div>
+          <p class="hint" style="margin-top:12px">Bulk mix excludes template DNA. Add the template separately to each sample and positive-control tube. For each NTC, add nuclease-free water in place of template.</p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      <p><strong>Bench note:</strong> The calculator checks arithmetic, units and total reaction volume. It cannot determine whether a chosen concentration is biologically optimal. Follow the enzyme/master mix datasheet and validate your assay conditions.</p>
+      <p>Local-only · No account · No saved entries</p>
+    </div>
+  </main>
+
+  <div class="loading-overlay" id="loadingOverlay" aria-hidden="true"><div class="loading-card"><div class="spinner"></div><strong>Balancing your reaction</strong><span>Checking concentrations and total volume…</span></div></div>
+  <div class="modal-backdrop" id="clearModal" role="dialog" aria-modal="true" aria-labelledby="clearTitle"><div class="modal"><h3 id="clearTitle">Clear all entries?</h3><p>This will remove everything entered in the calculator and clear the calculated results. Nothing is stored, so cleared entries cannot be recovered.</p><div class="modal-actions"><button class="btn" id="cancelClear" type="button">Cancel</button><button class="btn btn-danger" id="confirmClear" type="button">Clear all entries</button></div></div></div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="refresh-sweep" id="refreshSweep"><div class="sweep-inner">Resetting the bench…</div></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const form = $('pcrForm');
+  const state = { mode: 'commercial', lastResult: null, busy: false };
+  const num = (id) => {
+    const el = $(id);
+    if (!el || el.value.trim() === '') return NaN;
+    return Number(el.value);
+  };
+  const text = (id) => ($(id)?.value ?? '').trim();
+  const fmt = (value, digits = 3) => {
+    if (!Number.isFinite(value)) return '—';
+    return Number(value.toFixed(digits)).toString();
+  };
+  const isPositive = (v) => Number.isFinite(v) && v > 0;
+  const isNonNegative = (v) => Number.isFinite(v) && v >= 0;
+  const add = (arr, name, volume, kind, note = '') => arr.push({name, volume, kind, note});
+  const showError = (message) => { $('errorBox').textContent = message; $('errorBox').classList.add('show'); $('errorBox').scrollIntoView({behavior:'smooth',block:'center'}); };
+  const hideError = () => $('errorBox').classList.remove('show');
+  const notify = (message) => { const toast=$('toast');toast.textContent=message;toast.classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove('show'),2300); };
+  const toggleMode = (mode) => {
+    if (state.lastResult) clearResults();
+    state.mode = mode;
+    $('commercialMode').classList.toggle('hidden', mode !== 'commercial');
+    $('manualMode').classList.toggle('hidden', mode !== 'manual');
+    $('commercialTab').classList.toggle('active', mode === 'commercial');
+    $('manualTab').classList.toggle('active', mode === 'manual');
+    $('commercialTab').setAttribute('aria-selected', String(mode === 'commercial'));
+    $('manualTab').setAttribute('aria-selected', String(mode === 'manual'));
+    hideError();
+  };
+  const templateMode = () => document.querySelector('input[name="templateMode"]:checked')?.value || 'fixed';
+  const updateTemplateMode = () => {
+    const mode = templateMode();
+    $('templateFixed').classList.toggle('hidden', mode !== 'fixed');
+    $('templateMass').classList.toggle('hidden', mode !== 'mass');
+  };
+  const updateCommercialExtras = () => {
+    const unchecked = !['incBuffer','incMg','incDntp','incTaq'].every(id => $(id).checked);
+    $('commercialExtras').classList.toggle('hidden', !unchecked);
+    $('extraBuffer').classList.toggle('hidden', $('incBuffer').checked);
+    $('extraMg').classList.toggle('hidden', $('incMg').checked);
+    $('extraDntp').classList.toggle('hidden', $('incDntp').checked);
+    $('extraTaq').classList.toggle('hidden', $('incTaq').checked);
+  };
+
+  function calculate() {
+    hideError();
+    const errors = [];
+    const rxn = num('reactionVolume');
+    const samples = num('samples');
+    const reps = num('replicates');
+    const positives = num('positiveControls');
+    const ntcs = num('ntcControls');
+    const overage = num('overage');
+    if (!isPositive(rxn)) errors.push('Enter a positive final reaction volume in µL.');
+    if (!Number.isInteger(samples) || samples < 0) errors.push('Number of samples must be a whole number (zero or greater).');
+    if (!Number.isInteger(reps) || reps < 1) errors.push('Replicates per sample must be a whole number of at least 1.');
+    if (!Number.isInteger(positives) || positives < 0) errors.push('Positive controls must be a whole number (zero or greater).');
+    if (!Number.isInteger(ntcs) || ntcs < 0) errors.push('NTC count must be a whole number (zero or greater).');
+    if (!isNonNegative(overage) || overage > 100) errors.push('Extra volume must be between 0 and 100%.');
+    const totalReactions = samples * reps + positives + ntcs;
+    if (totalReactions < 1) errors.push('Enter at least one sample or control reaction.');
+    if (totalReactions > 10000) errors.push('The total reaction count is unusually high. Check your sample and replicate entries.');
+
+    const per = [];
+    const checks = [];
+    let templateVol = 0;
+    let mixVol = 0;
+    let mixLabel = '';
+    const addCalculated = (name, stock, final, kind, unit) => {
+      if (!isPositive(stock) || !isPositive(final)) { errors.push(`${name}: stock and desired final concentration must both be greater than zero.`); return; }
+      if (final > stock) { errors.push(`${name}: desired final concentration cannot exceed its stock concentration.`); return; }
+      const v = final * rxn / stock;
+      add(per, name, v, kind, `${fmt(final)} ${unit} final`);
+      checks.push({name, value:`${fmt(final)} ${unit}`});
+    };
+    const addEnzyme = (name, stockActivity, requiredUnits) => {
+      if (!isPositive(stockActivity) || !isPositive(requiredUnits)) { errors.push(`${name}: enter positive stock activity and required units per reaction.`); return; }
+      const v = requiredUnits / stockActivity;
+      add(per, name, v, 'enzyme', `${fmt(requiredUnits)} U per reaction`);
+      checks.push({name: `${name} activity`, value:`${fmt(requiredUnits)} U/reaction`});
+    };
+
+    if (state.mode === 'commercial') {
+      const stockX = num('mixStock'), finalX = num('mixFinal');
+      if (!isPositive(stockX) || !isPositive(finalX)) errors.push('Master mix stock and final strengths must be greater than zero.');
+      else if (finalX > stockX) errors.push('Desired final master mix strength cannot exceed its stock strength.');
+      else { mixVol = finalX * rxn / stockX; mixLabel = `PCR master mix (${fmt(finalX)}X final)`; add(per, mixLabel, mixVol, 'buffer', `${fmt(finalX)}X final`); checks.push({name:'Master mix',value:`${fmt(finalX)}X`}); }
+
+      if (!$('incBuffer').checked) addCalculated('PCR buffer', num('bufStock'), num('bufFinal'), 'buffer', 'X');
+      if (!$('incMg').checked) addCalculated('MgCl₂', num('mgStock'), num('mgFinal'), 'buffer', 'mM');
+      if (!$('incDntp').checked) addCalculated('dNTP mix (each nucleotide)', num('dntpStock'), num('dntpFinal'), 'buffer', 'mM each');
+      if (!$('incTaq').checked) addEnzyme('DNA polymerase', num('taqStock'), num('taqUnits'));
+    } else {
+      addCalculated('PCR buffer', num('manBufStock'), num('manBufFinal'), 'buffer', 'X');
+      addCalculated('MgCl₂', num('manMgStock'), num('manMgFinal'), 'buffer', 'mM');
+      addCalculated('dNTP mix (each nucleotide)', num('manDntpStock'), num('manDntpFinal'), 'buffer', 'mM each');
+      addEnzyme('Taq / DNA polymerase', num('manTaqStock'), num('manTaqUnits'));
+    }
+
+    const fwdStock = num('fwdStock'), fwdFinal = num('fwdFinal');
+    const revStock = num('revStock'), revFinal = num('revFinal');
+    if (!isPositive(fwdStock) || !isPositive(fwdFinal)) errors.push('Forward primer: enter positive stock and final concentrations.');
+    else if (fwdFinal > fwdStock) errors.push('Forward primer final concentration cannot exceed its stock concentration.');
+    else { const v=fwdFinal*rxn/fwdStock; add(per, `${text('fwdName') || 'Forward primer'} (${fmt(fwdFinal)} µM final)`,v,'primer'); checks.push({name:'Forward primer',value:`${fmt(fwdFinal)} µM`}); }
+    if (!isPositive(revStock) || !isPositive(revFinal)) errors.push('Reverse primer: enter positive stock and final concentrations.');
+    else if (revFinal > revStock) errors.push('Reverse primer final concentration cannot exceed its stock concentration.');
+    else { const v=revFinal*rxn/revStock; add(per, `${text('revName') || 'Reverse primer'} (${fmt(revFinal)} µM final)`,v,'primer'); checks.push({name:'Reverse primer',value:`${fmt(revFinal)} µM`}); }
+
+    if (templateMode() === 'fixed') {
+      templateVol = num('templateVolume');
+      if (!isNonNegative(templateVol)) errors.push('Template volume must be zero or greater.');
+      else add(per,'DNA template',templateVol,'dna');
+    } else {
+      const dnaStock = num('dnaStock'), dnaTarget = num('dnaTarget');
+      if (!isPositive(dnaStock) || !isPositive(dnaTarget)) errors.push('DNA concentration and desired DNA mass must both be greater than zero.');
+      else { templateVol = dnaTarget / dnaStock; add(per,`DNA template (${fmt(dnaTarget)} ng target)`,templateVol,'dna'); checks.push({name:'DNA input',value:`${fmt(dnaTarget)} ng`}); }
+    }
+
+    const sumBeforeWater = per.reduce((s,r)=>s+r.volume,0);
+    const water = rxn - sumBeforeWater;
+    if (water < -1e-9) errors.push(`Reagent volumes total ${fmt(sumBeforeWater)} µL, exceeding the ${fmt(rxn)} µL reaction by ${fmt(-water)} µL. Reduce reagent additions or increase the reaction volume.`);
+    if (errors.length) { showError(errors.join(' ')); return null; }
+    const safeWater = Math.max(0, water);
+    add(per, 'Nuclease-free water', safeWater, 'water');
+    // Display a consistent bench order: water first, then buffer/mix, primers, DNA, enzyme last.
+    const order = {water:0,buffer:1,primer:2,dna:3,enzyme:4,other:5};
+    per.sort((a,b)=>order[a.kind]-order[b.kind]);
+    const totalPer = per.reduce((s,r)=>s+r.volume,0);
+    const equivalents = totalReactions * (1 + overage/100);
+    const bulk = per.filter(r=>r.kind!=='dna').map(r=>({...r,volume:r.volume*equivalents}));
+    const bulkTotal = bulk.reduce((s,r)=>s+r.volume,0);
+    checks.push({name:'Reaction volume balance',value:`${fmt(totalPer)} / ${fmt(rxn)} µL`});
+    checks.push({name:'Template volume',value:`${fmt(templateVol)} µL per tube`});
+    checks.push({name:'Template quantity',value:templateMode()==='mass'?`${fmt(num('dnaTarget'))} ng per tube`:'User-defined volume'});
+    checks.push({name:'Water',value:`${fmt(safeWater)} µL per tube`});
+    return {rxn,totalReactions,equivalents,overage,per,bulk,bulkTotal,templateVol,checks,mode:state.mode};
+  }
+
+  function renderRows(target, rows, totalLabel) {
+    const tbody = $(target); tbody.innerHTML='';
+    rows.forEach(r=>{
+      const tr=document.createElement('tr');
+      const td1=document.createElement('td');
+      const label=document.createElement('span');label.className='reagent-label';
+      const dot=document.createElement('span');dot.className=`dot ${r.kind}`;
+      const name=document.createElement('span');name.textContent=r.name;
+      label.append(dot,name);td1.append(label);
+      const td2=document.createElement('td');td2.textContent=`${fmt(r.volume)} µL`;
+      tr.append(td1,td2);tbody.append(tr);
+    });
+    if(totalLabel){const tr=document.createElement('tr');const a=document.createElement('td');a.textContent='Total reaction volume';const b=document.createElement('td');b.textContent=`${fmt(totalLabel)} µL`;tr.append(a,b);tbody.append(tr);}
+  }
+  function renderResult(result) {
+    state.lastResult=result;
+    $('emptyState').classList.add('hidden');$('resultContent').classList.add('show');
+    $('outTubes').textContent=result.totalReactions;
+    $('outEquiv').textContent=fmt(result.equivalents,2);
+    $('outReactionVolume').textContent=`${fmt(result.rxn)} µL total`;
+    $('outBulkVolume').textContent=`${fmt(result.bulkTotal)} µL common mix`;
+    renderRows('perTable',result.per,result.rxn);
+    renderRows('bulkTable',result.bulk,result.bulkTotal);
+    const note=`Prepare ${fmt(result.bulkTotal)} µL of common master mix for ${result.totalReactions} reaction tubes, including ${fmt(result.overage)}% extra (${fmt(result.equivalents,2)} reaction equivalents). Dispense ${fmt(result.rxn-result.templateVol)} µL common mix per tube, then add ${fmt(result.templateVol)} µL template separately. For NTCs, substitute the same volume of nuclease-free water for template.`;
+    $('bulkNote').textContent=note;
+    const checks=$('checkTable');checks.innerHTML='';
+    result.checks.forEach(c=>{const tr=document.createElement('tr');const a=document.createElement('td');a.textContent=c.name;const b=document.createElement('td');b.textContent=c.value;tr.append(a,b);checks.append(tr);});
+    $('resultPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault(); if(state.busy)return;
+    state.busy=true;$('calculateBtn').disabled=true;$('loadingOverlay').classList.add('show');
+    // All calculations are local; the brief animation makes the checks visible.
+    await new Promise(resolve=>setTimeout(resolve,520));
+    const result=calculate();
+    $('loadingOverlay').classList.remove('show');$('calculateBtn').disabled=false;state.busy=false;
+    if(result){renderResult(result);notify('Reaction volumes calculated and balanced.');}
+  }
+
+  function clearResults() {
+    state.lastResult=null;$('resultContent').classList.remove('show');$('resultContent').classList.add('hidden');$('emptyState').classList.remove('hidden');
+    $('perTable').innerHTML='';$('bulkTable').innerHTML='';$('checkTable').innerHTML='';hideError();
+    setTimeout(()=>$('resultContent').classList.remove('hidden'),10);
+  }
+  function clearAll() {
+    const inputs=form.querySelectorAll('input');
+    inputs.forEach(input=>{
+      if(input.type==='checkbox') input.checked=false;
+      else if(input.type==='radio') input.checked=input.value==='fixed';
+      else input.value='';
+    });
+    toggleMode('commercial');updateTemplateMode();updateCommercialExtras();clearResults();
+    $('inputPanel').classList.remove('wipe');void $('inputPanel').offsetWidth;$('inputPanel').classList.add('wipe');
+  }
+  function loadExample() {
+    form.reset();
+    // Reapply explicit example values; values are transient and are not persisted.
+    toggleMode('commercial');updateTemplateMode();updateCommercialExtras();clearResults();
+    $('inputPanel').classList.remove('wipe');void $('inputPanel').offsetWidth;$('inputPanel').classList.add('wipe');
+    notify('Example reaction loaded. Check it against your reagent datasheet.');
+  }
+  function resultText() {
+    const r=state.lastResult;if(!r)return '';
+    let out=`PCR REACTION MIXTURE\nReaction volume: ${fmt(r.rxn)} µL\nTotal tubes: ${r.totalReactions}\nExtra: ${fmt(r.overage)}%\n\nPER REACTION\n`;
+    r.per.forEach(x=>out+=`${x.name}: ${fmt(x.volume)} µL\n`);
+    out+=`\nBULK COMMON MIX (${fmt(r.bulkTotal)} µL)\n`;
+    r.bulk.forEach(x=>out+=`${x.name}: ${fmt(x.volume)} µL\n`);
+    out+=`\nTemplate is excluded from the common mix and added separately. NTC: replace template with nuclease-free water.\n`;
+    out+='\nCALCULATED CHECKS\n';r.checks.forEach(x=>out+=`${x.name}: ${x.value}\n`);
+    out+="\nVerify all concentrations and formulation against the manufacturer's datasheet and validated protocol.";
+    return out;
+  }
+  async function copyResult(){if(!state.lastResult){notify('Calculate a recipe first.');return;}try{await navigator.clipboard.writeText(resultText());notify('Recipe copied to clipboard.');}catch(e){notify('Clipboard unavailable. Use Export CSV or select the result.');}}
+  function exportCSV(){
+    if(!state.lastResult){notify('Calculate a recipe first.');return;}
+    const r=state.lastResult;let rows=[['PCR reaction mixture'],['Reaction volume (µL)',fmt(r.rxn)],['Total tubes',r.totalReactions],['Extra volume (%)',fmt(r.overage)],[],['Per-reaction reagent','Volume (µL)'],...r.per.map(x=>[x.name,fmt(x.volume)]),['Total reaction volume',fmt(r.rxn)],[],['Bulk common mix reagent','Volume (µL)'],...r.bulk.map(x=>[x.name,fmt(x.volume)]),['Bulk common mix total',fmt(r.bulkTotal)],[],['Calculated parameter','Value'],...r.checks.map(x=>[x.name,x.value])];
+    const csv=rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pcr-reaction-mixture.csv';document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);notify('CSV exported.');
+  }
+  $('commercialTab').addEventListener('click',()=>toggleMode('commercial'));
+  $('manualTab').addEventListener('click',()=>toggleMode('manual'));
+  document.querySelectorAll('input[name="templateMode"]').forEach(x=>x.addEventListener('change',updateTemplateMode));
+  ['incBuffer','incMg','incDntp','incTaq'].forEach(id=>$(id).addEventListener('change',updateCommercialExtras));
+  const invalidateResult = () => { if (state.lastResult) clearResults(); };
+  form.addEventListener('input', invalidateResult);
+  form.addEventListener('change', invalidateResult);
+  form.addEventListener('submit',handleSubmit);
+  $('clearBtn').addEventListener('click',()=> $('clearModal').classList.add('show'));
+  $('cancelClear').addEventListener('click',()=> $('clearModal').classList.remove('show'));
+  $('confirmClear').addEventListener('click',()=>{$('clearModal').classList.remove('show');clearAll();notify('All entries and results cleared.');});
+  $('clearModal').addEventListener('click',e=>{if(e.target===$('clearModal'))$('clearModal').classList.remove('show');});
+  $('refreshBtn').addEventListener('click',()=>{$('refreshSweep').classList.remove('go');void $('refreshSweep').offsetWidth;$('refreshSweep').classList.add('go');setTimeout(()=>location.reload(),720);});
+  $('loadExampleBtn').addEventListener('click',loadExample);
+  $('copyBtn').addEventListener('click',copyResult);$('csvBtn').addEventListener('click',exportCSV);
+  // Start with a ready-to-edit example, but never write it to persistent browser storage.
+  updateTemplateMode();updateCommercialExtras();
+})();
+</script>
+</body>
+</html>
